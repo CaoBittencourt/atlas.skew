@@ -1,11 +1,11 @@
 Package: atlas.skew
 Type: Package
-Title: What the Package Does (Title Case)
+Title: A Skewness Coefficient for Bounded Variables
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Author: Cao Bittencourt Ferreira
+Maintainer: Cao Bittencourt Ferreira <caobittencourt@gmail.com>
+Description: This package provides a simple statistical coefficient to estimate the skewness of bounded variables as a percentage.
+Depends: modeest, Hmisc
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
