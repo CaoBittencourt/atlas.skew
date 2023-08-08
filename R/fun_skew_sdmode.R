@@ -115,11 +115,25 @@ fun_skew_sdmode <- function(
 
   }
 
-  # Calculate standard deviation
-  # Sample standard deviation
+  # Check if 'dbl_var' is named
+  lgc_named <- F
+
+  if(any(
+    length(colnames(dbl_var)),
+    length(names(dbl_var))
+  )){
+
+    lgc_named <- T
+
+  }
+
+  # Data wrangling
   cbind(
     dbl_var
   ) -> dbl_var
+
+  # Calculate standard deviation
+  # Sample standard deviation
 
   vapply(
     as.data.frame(dbl_var)
@@ -167,17 +181,21 @@ fun_skew_sdmode <- function(
     (1 - 2 * (dbl_sd / dbl_sd_ub)) ->
     dbl_skew
 
-  # Data wrangling
-  as.numeric(
-    dbl_skew
-  ) -> dbl_skew
+  # If named, keep names
+  if(!lgc_named){
+
+    as.numeric(
+      dbl_skew
+    ) -> dbl_skew
+
+  }
 
   # Output
   return(dbl_skew)
 
 }
 
-# # # [TEST] ------------------------------------------------------------------
+# # [TEST] ------------------------------------------------------------------
 # # - Sd-adjusted mode 1 ------------------------------------------------------
 # fun_skew_sdmode(
 #   dbl_var = pmax(rnorm(1000, 50, sd = 15), 0)
@@ -186,6 +204,7 @@ fun_skew_sdmode <- function(
 #   , dbl_scale_ub = 100
 #   , dbl_discount = 0.25
 # )
+#
 # # - Sd-adjusted mode 2 ------------------------------------------------------
 # fun_skew_sdmode(
 #   dbl_var =
@@ -198,6 +217,27 @@ fun_skew_sdmode <- function(
 #         rnorm(1000, 50, sd = 15)
 #       ), 0
 #     )
+#   , dbl_weights = runif(1000, 25000, 250000)
+#   , dbl_scale_lb = 0
+#   , dbl_scale_ub = 100
+#   , dbl_discount = 0.25
+# )
+#
+# # - Sd-adjusted mode 3 ------------------------------------------------------
+# pmax(
+#   cbind(
+#     rnorm(1000, 50, sd = 15),
+#     rnorm(1000, 50, sd = 15),
+#     rnorm(1000, 50, sd = 15),
+#     rnorm(1000, 50, sd = 15),
+#     rnorm(1000, 50, sd = 15)
+#   ), 0
+# ) -> dsds
+#
+# colnames(dsds) <- letters[1:ncol(dsds)]
+#
+# fun_skew_sdmode(
+#   dbl_var = dsds
 #   , dbl_weights = runif(1000, 25000, 250000)
 #   , dbl_scale_lb = 0
 #   , dbl_scale_ub = 100
