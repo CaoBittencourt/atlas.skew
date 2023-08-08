@@ -177,29 +177,29 @@ fun_skew_sdmode <- function(
 
 }
 
-# # [TEST] ------------------------------------------------------------------
-# - Sd-adjusted mode 1 ------------------------------------------------------
-fun_skew_sdmode(
-  dbl_var = pmax(rnorm(1000, 50, sd = 15), 0)
-  , dbl_weights = runif(1000, 25000, 250000)
-  , dbl_scale_lb = 0
-  , dbl_scale_ub = 100
-  , dbl_discount = 0.25
-)
-# - Sd-adjusted mode 2 ------------------------------------------------------
-fun_skew_sdmode(
-  dbl_var =
-    pmax(
-      cbind(
-        rnorm(1000, 50, sd = 15),
-        rnorm(1000, 50, sd = 15),
-        rnorm(1000, 50, sd = 15),
-        rnorm(1000, 50, sd = 15),
-        rnorm(1000, 50, sd = 15)
-      ), 0
-    )
-  , dbl_weights = runif(1000, 25000, 250000)
-  , dbl_scale_lb = 0
-  , dbl_scale_ub = 100
-  , dbl_discount = 0.25
-)
+# # # [TEST] ------------------------------------------------------------------
+# # - Sd-adjusted mode 1 ------------------------------------------------------
+# fun_skew_sdmode(
+#   dbl_var = pmax(rnorm(1000, 50, sd = 15), 0)
+#   , dbl_weights = runif(1000, 25000, 250000)
+#   , dbl_scale_lb = 0
+#   , dbl_scale_ub = 100
+#   , dbl_discount = 0.25
+# )
+# # - Sd-adjusted mode 2 ------------------------------------------------------
+# fun_skew_sdmode(
+#   dbl_var =
+#     pmax(
+#       cbind(
+#         rnorm(1000, 50, sd = 15),
+#         rnorm(1000, 50, sd = 15),
+#         rnorm(1000, 50, sd = 15),
+#         rnorm(1000, 50, sd = 15),
+#         rnorm(1000, 50, sd = 15)
+#       ), 0
+#     )
+#   , dbl_weights = runif(1000, 25000, 250000)
+#   , dbl_scale_lb = 0
+#   , dbl_scale_ub = 100
+#   , dbl_discount = 0.25
+# )
