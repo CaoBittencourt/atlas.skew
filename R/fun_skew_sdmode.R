@@ -21,7 +21,6 @@ fun_skew_sdmode <- function(
     , dbl_weights = NULL
     , dbl_scale_lb
     , dbl_scale_ub
-    , dbl_discount = 0.25
     , lgc_sample_variance = F
 ){
 
@@ -51,15 +50,6 @@ fun_skew_sdmode <- function(
   stopifnot(
     "'dbl_scale_ub' must be numeric." =
       is.numeric(dbl_scale_ub)
-  )
-
-  stopifnot(
-    "'dbl_discount' must be a numeric value between 0 and 1." =
-      all(
-        is.numeric(dbl_discount)
-        , dbl_discount >= 0
-        , dbl_discount <= 1
-      )
   )
 
   stopifnot(
@@ -134,7 +124,6 @@ fun_skew_sdmode <- function(
 
   # Calculate standard deviation
   # Sample standard deviation
-
   vapply(
     as.data.frame(dbl_var)
     , function(x){sqrt(wtd.var(x, dbl_weights))}
@@ -156,6 +145,11 @@ fun_skew_sdmode <- function(
 
   }
 
+  # Normalize sd
+  dbl_sd / dbl_sd_ub -> dbl_sd
+
+  rm(dbl_sd_ub)
+
   # If weights are provided, repeat each element 'dbl_weights' times
   if(length(dbl_weights)){
 
@@ -173,13 +167,23 @@ fun_skew_sdmode <- function(
     , FUN.VALUE = numeric(1)
   ) -> dbl_mode
 
+  rm(dbl_var)
+
+  # Normalize mode
+  dbl_mode / dbl_scale_ub -> dbl_mode
+
+  rm(dbl_scale_ub)
+
   # Calculate sd-adjusted mode
-  dbl_discount +
-    (1 - dbl_discount) * (dbl_mode / dbl_scale_ub) +
-    -dbl_discount * (dbl_sd / dbl_sd_ub) +
-    -dbl_discount * (1 - (dbl_mode / dbl_scale_ub)) *
-    (1 - 2 * (dbl_sd / dbl_sd_ub)) ->
+  dbl_sd +
+    (1 - dbl_sd) * dbl_mode +
+    -dbl_sd * dbl_sd +
+    -dbl_sd * (1 - dbl_mode) *
+    (1 - 2 * dbl_sd) ->
     dbl_skew
+
+  rm(dbl_mode)
+  rm(dbl_sd)
 
   # If named, keep names
   if(!lgc_named){
