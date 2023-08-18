@@ -104,7 +104,14 @@ fun_skew_sdmode <- function(
 
   # Normalize sd
   # Calculate upper limit for standard deviation
-  sd(c(0, 1)) -> dbl_sd_ub
+  sd(c(
+    rep(
+      0, (1 + floor((nrow(dbl_var) - 1) / 2))
+    ),
+    rep(
+      1, nrow(dbl_var) - (1 + floor((nrow(dbl_var) - 1) / 2))
+    )
+  )) -> dbl_sd_ub
 
   if(!lgc_sample_variance){
 
