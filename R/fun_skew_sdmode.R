@@ -116,16 +116,11 @@ fun_skew_sdmode <- function(
   if(!lgc_sample_variance){
 
     # Population standard deviation
-    dbl_sd_ub / sqrt(2) -> dbl_sd_ub
-
-  }
-
-  dbl_sd / dbl_sd_ub -> dbl_sd
-
-  rm(dbl_sd_ub)
-
-  # Population standard deviation
-  if(!lgc_sample_variance){
+    dbl_sd_ub *
+      sqrt((
+        nrow(dbl_var) - 1
+      ) / nrow(dbl_var)
+      ) -> dbl_sd_ub
 
     dbl_sd *
       sqrt((
@@ -135,6 +130,9 @@ fun_skew_sdmode <- function(
 
   }
 
+  dbl_sd / dbl_sd_ub -> dbl_sd
+
+  rm(dbl_sd_ub)
   rm(lgc_sample_variance)
 
   # If weights are provided, repeat each element 'dbl_weights' times
