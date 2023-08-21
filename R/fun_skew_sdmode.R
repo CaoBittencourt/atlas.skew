@@ -33,12 +33,12 @@ fun_skew_sdmode <- function(
   stopifnot(
     "'dbl_weights' must be either NULL or a numeric vector the same length as 'dbl_var'." =
       any(
-        all(
+        is.null(dbl_weights)
+        , all(
           is.numeric(dbl_weights)
           , length(dbl_weights) ==
             nrow(cbind(dbl_var))
         )
-        , is.null(dbl_weights)
       )
   )
 
@@ -193,6 +193,107 @@ fun_skew_sdmode <- function(
 
 }
 
+# - Demode data (skewness recenter) ----------------------------------------------
+fun_skew_desdmode <- function(
+    df_data
+    , dbl_weights = NULL
+    , dbl_scale_lb
+    , dbl_scale_ub
+    , lgc_sample_variance = F
+    , dbl_pct_remove = 1
+){
+
+  # Arguments validation
+  stopifnot(
+    "'df_data' must be a data frame or a numeric matrix." =
+      any(
+        is.data.frame(df_data)
+        , all(
+          is.matrix(df_data),
+          is.numeric(df_data)
+        )
+      )
+  )
+
+  stopifnot(
+    "'dbl_pct_remove' must be a number between zero and one." =
+      all(
+        dbl_pct_remove >= 0,
+        dbl_pct_remove <= 1
+      )
+  )
+
+  # Data wrangling
+  as.matrix(
+    df_data
+  ) -> mtx_data
+
+  rm(df_data)
+
+  # Calculate bounded variable skewness
+  fun_skew_sdmode(
+    dbl_var =
+      mtx_data
+    , dbl_weights =
+      dbl_weights
+    , dbl_scale_lb =
+      dbl_scale_lb
+    , dbl_scale_ub =
+      dbl_scale_ub
+    , lgc_sample_variance =
+      lgc_sample_variance
+  ) -> mtx_skew
+
+  rm(dbl_weights)
+  rm(dbl_scale_ub)
+  rm(lgc_sample_variance)
+
+  # Subtract sdmode from data
+  mtx_data -
+    dbl_pct_remove *
+    rbind(mtx_skew)[
+      rep(1, nrow(mtx_data))
+    ] -> mtx_centered
+
+  rm(mtx_skew)
+
+  # Truncate data
+  pmax(
+    mtx_centered
+    , dbl_scale_lb
+  ) -> mtx_centered
+
+  rm(dbl_scale_lb)
+
+  # Normalize by col max
+  mtx_centered /
+    apply(
+      mtx_centered, 1
+      , max
+    ) -> mtx_centered
+
+  pmax(mtx_centered, 0) ->
+    mtx_centered
+
+  pmin(mtx_centered, 1) ->
+    mtx_centered
+
+  # Adjust original data
+  mtx_data *
+    mtx_centered ->
+    mtx_data
+
+  rm(mtx_centered)
+
+  as.data.frame(
+    mtx_data
+  ) -> mtx_data
+
+  # Output
+  return(mtx_data)
+
+}
+
 # # [TEST] ------------------------------------------------------------------
 # # - Sd-adjusted mode 1 ------------------------------------------------------
 # fun_skew_sdmode(
@@ -200,7 +301,6 @@ fun_skew_sdmode <- function(
 #   , dbl_weights = runif(1000, 25000, 250000)
 #   , dbl_scale_lb = 0
 #   , dbl_scale_ub = 100
-#   , dbl_discount = 0.25
 # )
 #
 # # - Sd-adjusted mode 2 ------------------------------------------------------
@@ -240,4 +340,14 @@ fun_skew_sdmode <- function(
 #   , dbl_scale_lb = 0
 #   , dbl_scale_ub = 100
 #   , dbl_discount = 0.25
+# )
+#
+# # - Demode data -----------------------------------------------------------
+# fun_skew_desdmode(
+#   df_data = matrix(1, 10, 10) * runif(100, min = 0, max = 100)
+#   , dbl_weights = runif(10, 1000, 250000)
+#   , dbl_scale_lb = 0
+#   , dbl_scale_ub = 100
+#   , lgc_sample_variance = F
+#   , dbl_pct_remove = 1
 # )
