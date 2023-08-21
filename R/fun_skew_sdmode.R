@@ -15,12 +15,99 @@
 # #   {citation(package = x)})
 
 # [FUNCTIONS] -------------------------------------------------------------
+# - Shorth's mode function --------------------------------------------
+fun_skew_mode <- function(
+    dbl_var
+    , dbl_weights = NULL
+){
+
+  # Arguments validation
+  stopifnot(
+    "'dbl_var' must be numeric." =
+      is.numeric(dbl_var)
+  )
+
+  stopifnot(
+    "'dbl_weights' must be either NULL or a numeric vector the same length as 'dbl_var'." =
+      any(
+        is.null(dbl_weights)
+        , all(
+          is.numeric(dbl_weights)
+          , length(dbl_weights) ==
+            nrow(cbind(dbl_var))
+        )
+      )
+  )
+
+  # Check if 'dbl_var' is named
+  lgc_named <- F
+
+  if(any(
+    length(colnames(dbl_var)),
+    length(names(dbl_var))
+  )){
+
+    lgc_named <- T
+
+  }
+
+  cbind(
+    dbl_var
+  ) -> dbl_var
+
+  # If weights are provided, repeat each element 'dbl_weights' times
+  if(length(dbl_weights)){
+
+    # Minimal weights
+    dbl_weights
+    min(
+      dbl_weights
+      , na.rm = T
+    ) -> dbl_weights
+
+    round(
+      dbl_weights
+    ) -> dbl_weights
+
+    dbl_var[rep(
+      1:nrow(dbl_var)
+      , times = dbl_weights
+    ), ] -> dbl_var
+
+  }
+
+  # Calculate mode
+  vapply(
+    as.data.frame(dbl_var)
+    , function(x){mlv(x, method = 'shorth')}
+    , FUN.VALUE = numeric(1)
+  ) -> dbl_mode
+
+  rm(dbl_var)
+  rm(dbl_weights)
+
+  # If named, keep names
+  if(!lgc_named){
+
+    as.numeric(
+      dbl_mode
+    ) -> dbl_mode
+
+  }
+
+  rm(lgc_named)
+
+  # Output
+  return(dbl_mode)
+
+}
+
 # - Sd-adjusted mode function --------------------------------------------
 fun_skew_sdmode <- function(
     dbl_var
     , dbl_weights = NULL
-    , dbl_scale_lb
-    , dbl_scale_ub
+    , dbl_scale_lb = 0
+    , dbl_scale_ub = 100
     , lgc_sample_variance = F
 ){
 
@@ -197,8 +284,8 @@ fun_skew_sdmode <- function(
 fun_skew_desdmode <- function(
     df_data
     , dbl_weights = NULL
-    , dbl_scale_lb
-    , dbl_scale_ub
+    , dbl_scale_lb = 0
+    , dbl_scale_ub = 100
     , lgc_sample_variance = F
     , dbl_pct_remove = 1
 ){
@@ -216,6 +303,16 @@ fun_skew_desdmode <- function(
   )
 
   stopifnot(
+    "'dbl_scale_lb' must be numeric." =
+      is.numeric(dbl_scale_lb)
+  )
+
+  stopifnot(
+    "'dbl_scale_ub' must be numeric." =
+      is.numeric(dbl_scale_ub)
+  )
+
+  stopifnot(
     "'dbl_pct_remove' must be a number between zero and one." =
       all(
         dbl_pct_remove >= 0,
@@ -224,6 +321,9 @@ fun_skew_desdmode <- function(
   )
 
   # Data wrangling
+  dbl_scale_lb[[1]] -> dbl_scale_lb
+  dbl_scale_ub[[1]] -> dbl_scale_ub
+
   as.matrix(
     df_data
   ) -> mtx_data
@@ -245,17 +345,116 @@ fun_skew_desdmode <- function(
   ) -> mtx_skew
 
   rm(dbl_weights)
-  rm(dbl_scale_ub)
   rm(lgc_sample_variance)
 
   # Subtract sdmode from data
   mtx_data -
+    dbl_scale_ub *
     dbl_pct_remove *
     rbind(mtx_skew)[
       rep(1, nrow(mtx_data))
     ] -> mtx_centered
 
   rm(mtx_skew)
+  rm(dbl_scale_ub)
+
+  # Truncate data
+  pmax(
+    mtx_centered
+    , dbl_scale_lb
+  ) -> mtx_centered
+
+  rm(dbl_scale_lb)
+
+  # Normalize by col max
+  mtx_centered /
+    apply(
+      mtx_centered, 1
+      , max
+    ) -> mtx_centered
+
+  pmax(mtx_centered, 0) ->
+    mtx_centered
+
+  pmin(mtx_centered, 1) ->
+    mtx_centered
+
+  # Adjust original data
+  mtx_data *
+    mtx_centered ->
+    mtx_data
+
+  rm(mtx_centered)
+
+  as.data.frame(
+    mtx_data
+  ) -> mtx_data
+
+  # Output
+  return(mtx_data)
+
+}
+
+# - Demode data (mode recenter) ----------------------------------------------
+fun_skew_demode <- function(
+    df_data
+    , dbl_weights = NULL
+    , dbl_scale_lb = 0
+    , dbl_pct_remove = 1
+){
+
+  # Arguments validation
+  stopifnot(
+    "'df_data' must be a data frame or a numeric matrix." =
+      any(
+        is.data.frame(df_data)
+        , all(
+          is.matrix(df_data),
+          is.numeric(df_data)
+        )
+      )
+  )
+
+  stopifnot(
+    "'dbl_scale_lb' must be numeric." =
+      is.numeric(dbl_scale_lb)
+  )
+
+  stopifnot(
+    "'dbl_pct_remove' must be a number between zero and one." =
+      all(
+        dbl_pct_remove >= 0,
+        dbl_pct_remove <= 1
+      )
+  )
+
+  # Data wrangling
+  dbl_scale_lb[[1]] -> dbl_scale_lb
+
+  as.matrix(
+    df_data
+  ) -> mtx_data
+
+  rm(df_data)
+
+  # Calculate bounded variable skewness
+  fun_skew_mode(
+    dbl_var =
+      mtx_data
+    , dbl_weights =
+      dbl_weights
+  ) -> mtx_mode
+
+  rm(dbl_weights)
+
+  # Subtract mode from data
+  mtx_data -
+    dbl_pct_remove *
+    rbind(mtx_mode)[
+      rep(1, nrow(mtx_data))
+    ] -> mtx_centered
+
+  rm(mtx_mode)
 
   # Truncate data
   pmax(
@@ -295,6 +494,11 @@ fun_skew_desdmode <- function(
 }
 
 # # [TEST] ------------------------------------------------------------------
+# # - Mode ------------------------------------------------------------------
+# fun_skew_mode(c(1,1,0))
+# fun_skew_mode(c(1,0,0))
+# fun_skew_mode(diag(5))
+
 # # - Sd-adjusted mode 1 ------------------------------------------------------
 # fun_skew_sdmode(
 #   dbl_var = pmax(rnorm(1000, 50, sd = 15), 0)
