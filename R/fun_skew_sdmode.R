@@ -531,7 +531,7 @@ fun_skew_desdmode <- function(
 }
 
 # - Demode data (mode recenter) ----------------------------------------------
-fun_skew_desdmode <- function(
+fun_skew_demode <- function(
     df_data
     , dbl_weights = NULL
     , dbl_scale_lb = 0
