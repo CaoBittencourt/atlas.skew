@@ -1,7 +1,7 @@
 Package: atlas.skew
 Type: Package
 Title: A Skewness Coefficient for Bounded Variables
-Version: 3.0.4
+Version: 3.0.5
 Author: Cao Bittencourt
 Maintainer: Cao Bittencourt <caobittencourt@gmail.com>
 Description: This package provides a simple statistical coefficient to estimate the skewness of bounded variables as a percentage.
