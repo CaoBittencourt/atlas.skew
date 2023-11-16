@@ -226,7 +226,7 @@ fun_skew_sdmode <- function(
   if(length(dbl_weights)){
 
     # Minimal weights
-    dbl_weights
+    dbl_weights /
     min(
       dbl_weights
       , na.rm = T
