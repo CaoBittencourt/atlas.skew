@@ -135,10 +135,15 @@ fun_skew_sdmode <- function(
   )
 
   stopifnot(
-    "'dbl_scale_ub' must be numeric." =
-      is.numeric(dbl_scale_ub)
+    "'dbl_scale_ub' must be numeric and greater than 'dbl_scale_lb'." =
+      all(
+        is.numeric(dbl_scale_ub)
+        , dbl_scale_ub > 
+          dbl_scale_lb
+      )
+    
   )
-
+  
   stopifnot(
     "'lgc_sample_variance' must be either TRUE or FALSE." =
       all(
